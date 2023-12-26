@@ -1,0 +1,11 @@
+Columns:
+CustomerID (Unique identifier for the customer)
+Name (Customer's full name)
+Age (Customer's age)
+Email (Customer's email address)
+SignUpDate (Date the customer signed up, format: YYYY-MM-DD)
+LastPurchaseDate (Date of the last purchase, format: YYYY-MM-DD)
+TotalPurchases (Total number of purchases made by the customer)
+AveragePurchaseValue (Average value of purchases)
+PreferredDevice (Device most often used for shopping, e.g., Mobile, Desktop)
+Location (Customer's location)
