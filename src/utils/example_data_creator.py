@@ -29,7 +29,7 @@ def add_noise(data, noise_chance=0.1):
 for _ in range(num_customers):
     customer_id = str(_ + 1).zfill(3)
     name = fake.name()
-    age = str(random.randint(18, 70))
+    age = str(random.randint(13, 70))
     email = fake.email()
     sign_up_date = fake.date_between(start_date='-3y', end_date='today')
     # Ensure last_purchase_date is after the sign_up_date
