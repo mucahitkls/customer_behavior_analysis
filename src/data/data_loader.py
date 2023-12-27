@@ -5,7 +5,7 @@ from src.utils.helper import *
 
 class DataLoader:
     def __init__(self, filepath: str = ""):
-        self.file_path = self.get_file_path(filepath)
+        self.file_path = self.get_and_check_filepath(filepath)
 
     def load_data(self):
         if self.file_path.endswith('.csv'):
@@ -17,18 +17,22 @@ class DataLoader:
 
     def load_csv(self):
         """ Load data from a CSV file """
-        if is_file_exists(self.file_path):
+        try:
             return pd.read_csv(self.file_path)
-        raise FileExistsError("File does not exists")
+        except Exception as e:
+            print(f"Error when loading csv file. Filepath: {self.file_path}")
+            raise e
 
     def load_excel(self):
         """ Load data from an Excel file """
-        if is_file_exists(self.file_path):
+        try:
             return pd.read_excel(self.file_path)
-        raise FileExistsError("File does not exists")
+        except Exception as e:
+            print(f"Error when loading excel file. Filepath: {self.file_path}")
+            raise e
 
     @staticmethod
-    def get_file_path(filepath):
+    def get_and_check_filepath(filepath):
         """
             Returns a file path. If the filepath is not provided, prompts the user to select a file.
 
@@ -37,11 +41,10 @@ class DataLoader:
 
         """
         if not filepath:
-            filepath = filedialog.askopenfilename(filetypes=[('Excel file', '*.xlsx'), ('CSV file', '*.csv')])
+            filepath = filedialog.askopenfilename(filetypes=[('Excel - CSV files', '*.xlsx *.csv')])
             if not filepath:
                 raise ValueError("No file was selected.")
-            return filepath
 
-
-loader = DataLoader()
-variable = loader.load_data()
+            if is_file_exists(file_path=filepath):
+                return filepath
+            raise FileExistsError(f"File does not exist: {filepath}")

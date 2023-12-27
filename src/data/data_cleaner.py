@@ -3,16 +3,23 @@ import re
 
 
 class DataCleaner:
+    expected_columns = [
+        "CustomerID", "Name", "Age", "Email", "SignUpDate",
+        "LastPurchaseDate", "TotalPurchases", "AveragePurchaseValue",
+        "PreferredDevice", "Location"
+    ]
 
     def __init__(self, dataframe):
-        self.df = dataframe
-        self.expected_columns = [
-            "CustomerID", "Name", "Age", "Email", "SignUpDate",
-            "LastPurchaseDate", "TotalPurchases", "AveragePurchaseValue",
-            "PreferredDevice", "Location"
-        ]
+        self.df = self.validate_dataframe(dataframe)
 
-    def validate_dataframe(self):
+    @staticmethod
+    def validate_dataframe(dataframe):
+        if dataframe.empty:
+            print("File is empty")
+            raise pd.errors.EmptyDataError("The provided DataFrame is empty.")
+        return dataframe
+
+    def validate_columns(self):
         """Check if the DataFrame follows the expected format."""
         missing_columns = set(self.expected_columns) - set(self.df.columns)
         if missing_columns:
@@ -20,11 +27,21 @@ class DataCleaner:
 
     def clean_ids(self):
         """Ensure CustomerIDs are in a standard format (e.g., 001, 002,...)"""
-        self.df['CustomerID'] = self.df['CustomerID'].apply(lambda x: str(x).zfill(3))
+        def format_customer_id(cid):
+            # Remove non-numeric characters and ensure it's 5 digits long
+            cleaned_id = ''.join(filter(str.isdigit, cid))
+            return cleaned_id
+
+        self.df['CustomerID'] = self.df['CustomerID'].apply(format_customer_id)
+
+        self.df = self.df.dropna(subset=['CustomerID']).sort_values(by='CustomerID')
+
+        self.df['CustomerID'] = range(1, len(self.df) + 1)
+        self.df['CustomerID'] = self.df['CustomerID'].astype(str).str.zfill(5)
 
     def clean_names(self):
         """Strip trailing spaces and correct obvious typos in names."""
-        self.df['Name'] = self.df['Name'].str.strip().replace(r'\bx\b', '')
+        self.df['Name'] = self.df['Name'].str.strip().str.replace(r'\bx\b', '', regex=True)
 
     def clean_ages(self):
         """Convert ages from text to integers, handle missing and nonsensical values."""
@@ -59,7 +76,8 @@ class DataCleaner:
     def clean_emails(self):
         """Remove rows with invalid or missing email addresses."""
         valid_email = r'^\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-        self.df = self.df[self.df['Email'].str.match(valid_email)]
+        mask = self.df['Email'].str.match(valid_email, na=False)
+        self.df = self.df[mask]
 
     def standardize_dates(self):
         """Convert dates to a standard YYYY-MM-DD format, handle wrong formats."""
@@ -73,18 +91,20 @@ class DataCleaner:
 
     def standardize_devices(self):
         """Correct minor typos in device names and standardize to 'Mobile' or 'Desktop'."""
-        self.df['PreferredDevice'] = self.df['PreferredDevice'].str.replace('Mobil', 'Mobil', regex=False)
+        self.df['PreferredDevice'] = self.df['PreferredDevice'].str.replace(r'^[Mm].*', 'Mobile', regex=True)
+        self.df['PreferredDevice'] = self.df['PreferredDevice'].str.replace(r'^[Dd].*', 'Desktop', regex=True)
 
     def clean_locations(self):
         """Handle missing or incomplete location data"""
         self.df['Location'] = self.df['Location'].replace('', 'Unknown')
 
-    def run_all(self):
+    def clean_data(self):
         """Run all cleaning functions."""
+        self.validate_columns()
         self.clean_ids()
         self.clean_names()
         self.clean_ages()
-        self.clean_emails()
+        self.clean_emails() #Buggy
         self.standardize_dates()
         self.clean_purchases()
         self.standardize_devices()

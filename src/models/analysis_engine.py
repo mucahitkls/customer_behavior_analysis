@@ -10,7 +10,7 @@ class AnalysisEngine:
             "PreferredDevice", "Location"
         ]
 
-    def perform_purchase_segmentation(self):
+    def perform_purchase_segmentation(self, threshold: int = 50):
         """Segment customers based on total purchases criteria.
             :returns
             - High - if total_purchases > 50
@@ -19,10 +19,10 @@ class AnalysisEngine:
         # Implement segmentation logic
         if self.check_if_all_numeric(key='TotalPurchases'):
             self.data['Purchase_Segment'] = self.data['TotalPurchases'].apply(
-                lambda x: 'High' if int(x) > 50 else 'Low')
+                lambda x: 'High' if int(x) > threshold else 'Low')
         pass
 
-    def perform_age_segmentation(self):
+    def perform_age_segmentation(self, age_1: int = 18, age_2: int = 40):
         """
             Segment customers based on age criteria.
             :returns:
@@ -33,7 +33,7 @@ class AnalysisEngine:
         key = 'Age'
         if self.check_if_all_numeric(key=key):
             self.data['Age_Segment'] = self.data['Age'].apply(
-                lambda x: 'Young' if int(x) < 18 else ('Middle' if 18 <= int(x) < 40 else 'Old'))
+                lambda x: 'Young' if int(x) < age_1 else ('Middle' if age_1 <= int(x) < age_2 else 'Old'))
 
         pass
 
